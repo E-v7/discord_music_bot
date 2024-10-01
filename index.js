@@ -31,10 +31,11 @@ const client = new Client( {
 
 // All bot commands and the functions they belong to
 let botCommands = {
-    'h': handleHelp, // help
-    'p': handlePlay, // play
-    's': handleSkip, // skip
-    'x': handleExit  // Exit/Disconnect
+    'h': handleHelp,    // help
+    'p': handlePlay,    // play
+    's': handleSkip,    // skip
+    'x': handleExit,    // Exit/Disconnect
+    'prefix': handlePrefix // Change the prefix
 }
 
 // Listen to every message sent by users and handle it if needed
@@ -221,6 +222,15 @@ function clearCache() {
             })
         }
     })
+}
+
+// Changes the prefix to a new option
+function handlePrefix(message) {
+    var newPrefix = message.content.split(' ', 2)[1]
+    appsettings.COMMAND_PREFIX = newPrefix
+
+    // Update settings file with new appsettings data
+    fs.writeFile(path.join(__dirname, 'appsettings.json'), appsettings, { flag: 'w+' })
 }
 
 // welcome howie
