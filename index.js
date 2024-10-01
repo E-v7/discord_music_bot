@@ -166,7 +166,10 @@ function playSong(voiceChannel, filePath, message) {
         })
 
         var disconnectTimeout = setTimeout(() => {
-            connection.destroy()
+            // If after the TIMEOUT_MILLISECONDS time the player is still idle disconnect
+            if (player.AudioPlayerStatus == AudioPlayerStatus.Idle) {
+                connection.destroy()
+            }
         }, appsettings.TIMEOUT_MILLISECONDS)
     })
 
