@@ -31,10 +31,11 @@ const client = new Client( {
 
 // All bot commands and the functions they belong to
 let botCommands = {
-    'h': handleHelp, // help
-    'p': handlePlay, // play
-    's': handleSkip, // skip
-    'x': handleExit  // Exit/Disconnect
+    'h': handleHelp,    // help
+    'p': handlePlay,    // play
+    's': handleSkip,    // skip
+    'x': handleExit,    // Exit/Disconnect
+    'prefix': handlePrefix // Change the prefix
 }
 
 // Listen to every message sent by users and handle it if needed
@@ -229,6 +230,34 @@ function clearCache() {
                     console.error(`Error deleting file ${file}`, err)
                 }
             })
+        }
+    })
+}
+
+// Changes the prefix to a new option
+function handlePrefix(message) {
+    var newPrefix = message.content.split(' ', 2)[1]
+
+    if (newPrefix == null) {
+        return
+    }
+
+    if (appsettings.COMMAND_PREFIX == newPrefix) {
+        message.channel.send('That prefix is already being used')
+        return
+    }
+    
+    appsettings.COMMAND_PREFIX = newPrefix
+
+    // Update settings file with new appsettings data
+    var filePath = path.join(__dirname, 'appsettings.json')
+    fs.writeFile(filePath, JSON.stringify(appsettings, null, '\t'), { flag: 'w+' }, (err) => {
+        if (err) {
+            message.channel.send('Something went wrong and the prefix wasn\'t changed')
+            console.error('Updating settings failed', err)
+            return
+        } else {
+            message.channel.send(`Prefix has been updated to '${newPrefix}'`)
         }
     })
 }
