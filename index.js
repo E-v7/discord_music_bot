@@ -227,10 +227,29 @@ function clearCache() {
 // Changes the prefix to a new option
 function handlePrefix(message) {
     var newPrefix = message.content.split(' ', 2)[1]
+
+    if (newPrefix == null) {
+        return
+    }
+
+    if (appsettings.COMMAND_PREFIX == newPrefix) {
+        message.channel.send('That prefix is already being used')
+        return
+    }
+    
     appsettings.COMMAND_PREFIX = newPrefix
 
     // Update settings file with new appsettings data
-    fs.writeFile(path.join(__dirname, 'appsettings.json'), appsettings, { flag: 'w+' })
+    var filePath = path.join(__dirname, 'appsettings.json')
+    fs.writeFile(filePath, JSON.stringify(appsettings, null, '\t'), { flag: 'w+' }, (err) => {
+        if (err) {
+            message.channel.send('Something went wrong and the prefix wasn\'t changed')
+            console.error('Updating settings failed', err)
+            return
+        } else {
+            message.channel.send(`Prefix has been updated to '${newPrefix}'`)
+        }
+    })
 }
 
 // welcome howie
