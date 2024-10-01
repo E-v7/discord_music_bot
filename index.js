@@ -31,10 +31,10 @@ const client = new Client( {
 
 // All bot commands and the functions they belong to
 let botCommands = {
-    '/h': handleHelp, // help
-    '/p': handlePlay, // play
-    '/s': handleSkip, // skip
-    '/x': handleExit  // Exit/Disconnect
+    'h': handleHelp, // help
+    'p': handlePlay, // play
+    's': handleSkip, // skip
+    'x': handleExit  // Exit/Disconnect
 }
 
 // Listen to every message sent by users and handle it if needed
@@ -56,13 +56,20 @@ client.on('messageCreate', async (message) => {
     // request[0] - Command ex. /p
     // request[1] - Actual request ex. a youtube link
     var request = message.content.split(' ', 2)
-    if (!botCommands[request[0]]) {
+
+    // Check if prefix for this bot was used
+    if (!request[0].includes(appsettings.COMMAND_PREFIX)) {
+        return
+    }
+
+    var command = request[0].split(appsettings.COMMAND_PREFIX)[1]
+    if (!botCommands[command]) {
         return
     }
 
     // Just give the entire message and allow the function to determine
     //  how to use it
-    botCommands[request[0]](message)
+    botCommands[command](message)
 })
 
 // Handles a help request and explains the commands to the users
@@ -151,13 +158,16 @@ function playSong(voiceChannel, filePath, message) {
 
     player.on(AudioPlayerStatus.Idle, () => {
         console.log('Finished playing, cleaning up')
-        connection.destroy()
 
         // Delete the cached file after playing
         fs.unlink(filePath, (err) => {
             if (err) console.error('Error deleting file:', err)
             else console.log('Deleted cached file:', filePath)
         })
+
+        var disconnectTimeout = setTimeout(() => {
+            connection.destroy()
+        }, appsettings.TIMEOUT_MILLISECONDS)
     })
 
     player.on('error', (error) => {
