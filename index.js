@@ -123,7 +123,6 @@ async function handlePlay(message) {
 async function downloadSongToCache(request, filePath) {
     return new Promise((resolve, reject) => {
         const stream = ytdl(request, { filter: 'audioonly', ffmpegPath })
-        console.log(filePath)
         const writeStream = fs.createWriteStream(filePath)
 
         stream.pipe(writeStream)
@@ -142,6 +141,7 @@ async function downloadSongToCache(request, filePath) {
     })
 }
 
+let disconnectTimeout
 // Play the song from the cache
 function playSong(voiceChannel, filePath, message) {
     const connection = joinVoiceChannel({
@@ -165,8 +165,18 @@ function playSong(voiceChannel, filePath, message) {
             else console.log('Deleted cached file:', filePath)
         })
 
-        var disconnectTimeout = setTimeout(() => {
-            connection.destroy()
+        // Clear any existing disconnect timeout when a song starts playing
+        if (disconnectTimeout) {
+            clearTimeout(disconnectTimeout)
+            disconnectTimeout = null
+        }
+        
+        disconnectTimeout = setTimeout(() => {
+            // If after the TIMEOUT_MILLISECONDS time the player is still idle disconnect
+            if (connection && connection.state.status != VoiceConnectionStatus.Destroyed && player.state.status == AudioPlayerStatus.Idle) {
+                connection.destroy()
+                console.log('Connection destroyed due to inactivity')
+            }
         }, appsettings.TIMEOUT_MILLISECONDS)
     })
 
