@@ -195,6 +195,11 @@ function playSong(voiceChannel, filePath, message) {
 
 // To be implemented
 function handleSkip(message) {
+    if (!appsettings.BOT_COMMAND.SKIP.ENABLED) {
+        message.channel.send(appsettings.BOT_COMMAND.DISABLED_MESSAGE)
+        return
+    }
+
     player.stop()
     if (connection && connection.state.status !== VoiceConnectionStatus.Destroyed) {
         connection.destroy()
