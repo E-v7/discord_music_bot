@@ -1,5 +1,7 @@
 import { fileURLToPath } from 'url'
-import { dirname, path } from 'path'
+import { dirname } from 'path'
+import path from 'path'
+import fs from 'fs'
 
 // Get the absolute directory path to this file
 const __filename = fileURLToPath(import.meta.url)
