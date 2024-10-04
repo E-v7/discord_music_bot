@@ -1,7 +1,7 @@
 import { AudioResource, createAudioPlayer, createAudioResource, joinVoiceChannel, VoiceConnection, AudioPlayerStatus, VoiceConnectionStatus } from '@discordjs/voice'
 import ytdl from '@distube/ytdl-core'
 import ffmpegPath from 'ffmpeg-static'
-import { Message } from 'discord.js'
+import { Message, VoiceState } from 'discord.js'
 import { appsettings } from './helper.js'
 import { fileURLToPath } from 'url'
 import { dirname } from 'path'
@@ -32,6 +32,10 @@ export class HowieMusicPlayer {
      * @type {boolean}
      */
     #enabled_content_streaming
+    /**
+     * @type {string[]}
+     */
+    #queue
 
     /**
      * @description If set to true uses streaming instead of caching songs
@@ -41,6 +45,7 @@ export class HowieMusicPlayer {
     constructor(enable_content_streaming) {
         this.#player = createAudioPlayer()
         this.#enabled_content_streaming = enable_content_streaming
+        this.#queue = []
     }
 
     /**
@@ -59,7 +64,15 @@ export class HowieMusicPlayer {
         var youtube_link = message.content.split(' ', 2)[1]
 
         // Verify this is a video we want to process
-        const info = await ytdl.getInfo(youtube_link)
+        let info
+        try {
+            info = await ytdl.getInfo(youtube_link)
+        } catch (err) {
+            // Replace this later with a proper logging system
+            message.channel.send('<@141633745504567296> \nIt looks like an error was encountered while trying to play a song ```' + err + '```')
+            return
+        }
+
         var is_over_duration = (info.videoDetails.lengthSeconds / 60) > appsettings.MAX_DOWNLOADABLE_VIDEO_DURATION
         if (info.videoDetails.isLiveContent || is_over_duration) {
             if (info.videoDetails.isLiveContent) {
@@ -71,9 +84,21 @@ export class HowieMusicPlayer {
             return
         }
 
+        // If queue contains a song and the music player isn't already playing a song
+        if (this.#player.state.status != AudioPlayerStatus.Idle) {
+            console.log(`Pushing new song on to queue ${youtube_link}`)
+            this.#queue.push(youtube_link)
+            return
+        }
+
+        
         var filePath = path.join(__dirname, 'cache', `song_${Date.now()}.mp3`)
-        await this.#downloadSongToCache(youtube_link, filePath)
-        this.#playSong(message.member.voice.channel, filePath, message)
+        try {
+            await this.#downloadSongToCache(youtube_link, filePath)
+            this.#playSong(message.member.voice.channel, filePath, message)
+        } catch (err) {
+            message.channel.send('@ev7 \nIt looks like an error was encountered while trying to play a song\n\n' + err)
+        }
     }
     // this.#connection = joinVoiceChannel()
     // this.#resource = createAudioResource()
@@ -101,6 +126,12 @@ export class HowieMusicPlayer {
 
     #disconnectTimeout
     // Play the song from the cache
+    /**
+     * 
+     * @param {VoiceState.channel} voiceChannel 
+     * @param {string} filePath 
+     * @param {Message} message 
+     */
     #playSong(voiceChannel, filePath, message) {
         this.#connection = joinVoiceChannel({
             channelId: voiceChannel.id,
@@ -115,8 +146,7 @@ export class HowieMusicPlayer {
         this.#player.play(this.#resource)
 
         this.#player.on(AudioPlayerStatus.Idle, () => {
-            console.log('Finished playing, cleaning up')
-
+            console.log('Song finished playing, deleting from cache')
             // Delete the cached file after playing
             fs.unlink(filePath, (err) => {
                 if (err) console.error('Error deleting file:', err)
@@ -127,6 +157,12 @@ export class HowieMusicPlayer {
             if (this.#disconnectTimeout) {
                 clearTimeout(this.#disconnectTimeout)
                 this.#disconnectTimeout = null
+            }
+
+            if (this.#queue.length > 0) {
+                var new_song_link = this.#queue.shift()
+                message.content = `${message.content.split(' ', 2)[0]} ${new_song_link}`
+                this.addSong(message)
             }
             
             this.#disconnectTimeout = setTimeout(() => {
