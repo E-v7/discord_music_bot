@@ -185,4 +185,41 @@ export class HowieMusicPlayer {
             })
         })
     }
+
+    /**
+     * @description Forces the player to stop triggering the Idle listener to fire
+     * 
+     * @param {Message} message 
+     */
+    skipSong(message) {
+        if (this.#player.state.status != AudioPlayerStatus.Playing) {
+            message.channel.send('There is no song currently playing')
+            return
+        }
+
+        message.channel.send('Song skipped')
+        this.#player.stop()
+    }
+
+    /**
+     * @description Plays the song at the specified queue position immediately by
+     * putting it at the beginning of the queue 
+     * 
+     * @param {Message} message
+     * @param {int} queue_position Pass null to skip to next song
+     */
+    #playSongInPosition(message, queue_position) {        
+        if (queue_position > this.#queue.length) {
+            message.channel.send('Queue position doesn\'t exist')
+            return
+        }
+
+        // Zero indexed
+        queue_position--
+        
+        // Get the link for the song
+        var new_song_link = this.#queue.splice(queue_position, 1)[0]
+        this.#queue.unshift(new_song_link)
+        this.#player.stop()
+    }
 }

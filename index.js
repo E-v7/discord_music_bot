@@ -109,11 +109,7 @@ function handleSkip(message) {
         return
     }
 
-    player.stop()
-    if (connection && connection.state.status !== VoiceConnectionStatus.Destroyed) {
-        connection.destroy()
-        console.log('connection destroyed from skip request')
-    }
+    howie.skipSong(message)
 }
 
 // Destroys the connection the bot has to the voice channel and clears cache
