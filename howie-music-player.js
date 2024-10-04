@@ -74,13 +74,23 @@ export class HowieMusicPlayer {
         }
 
         var is_over_duration = (info.videoDetails.lengthSeconds / 60) > appsettings.MAX_DOWNLOADABLE_VIDEO_DURATION
-        if (info.videoDetails.isLiveContent || is_over_duration) {
+        var is_playlist = youtube_link.includes('playlist')
+        if (info.videoDetails.isLiveContent || is_over_duration || is_playlist) {
+            var issue = 'Video cannot be played because of the following'
             if (info.videoDetails.isLiveContent) {
-                message.channel.send('Playing live streams is not yet allowed')
+                issue += '\nPlaying live streams is not yet allowed'
             }
             if (is_over_duration) {
-                message.channel.send(`Video is over the maximum allowed video duration of ${appsettings.MAX_DOWNLOADABLE_VIDEO_DURATION} minutes`)
+                issue += `\nVideo is over the maximum allowed video duration of ${appsettings.MAX_DOWNLOADABLE_VIDEO_DURATION} minutes`
             }
+            if (is_playlist) {
+                issue += '\nLink was to a playlist, this feature is not supported yet'
+            }
+
+            if (issue != '') {
+                issue += '\nUnknown'
+            }
+            message.channel.send(issue)
             return
         }
 
