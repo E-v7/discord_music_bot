@@ -116,8 +116,7 @@ export class HowieMusicPlayer {
             message.channel.send('@ev7 \nIt looks like an error was encountered while trying to play a song\n\n' + err)
         }
     }
-    // this.#connection = joinVoiceChannel()
-    // this.#resource = createAudioResource()
+    
     // Downloads a song to the cache folder
     async #downloadSongToCache(youtube_link, filePath) {
         return new Promise((resolve, reject) => {
