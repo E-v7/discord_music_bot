@@ -63,6 +63,15 @@ export class HowieMusicPlayer {
 
         var youtube_link = message.content.split(' ', 2)[1]
 
+        var is_playlist = youtube_link.includes('playlist')
+        if (is_playlist) {
+            var issue = 'Video cannot be played because of the following'
+            issue += '\n- Link was to a playlist, we are still working on implementing that feature'
+            message.channel.send(issue)
+            return
+        }
+
+
         // Verify this is a video we want to process
         let info
         try {
@@ -74,22 +83,19 @@ export class HowieMusicPlayer {
         }
 
         var is_over_duration = (info.videoDetails.lengthSeconds / 60) > appsettings.MAX_DOWNLOADABLE_VIDEO_DURATION
-        var is_playlist = youtube_link.includes('playlist')
+        
         if (info.videoDetails.isLiveContent || is_over_duration || is_playlist) {
             var issue = 'Video cannot be played because of the following'
             if (info.videoDetails.isLiveContent) {
-                issue += '\nPlaying live streams is not yet allowed'
+                issue += '\n- Playing live streams is not yet allowed'
             }
             if (is_over_duration) {
-                issue += `\nVideo is over the maximum allowed video duration of ${appsettings.MAX_DOWNLOADABLE_VIDEO_DURATION} minutes`
+                issue += `\n- Video is over the maximum allowed video duration of ${appsettings.MAX_DOWNLOADABLE_VIDEO_DURATION} minutes`
             }
             if (is_playlist) {
-                issue += '\nLink was to a playlist, this feature is not supported yet'
+                issue += '\n- Link was to a playlist, this feature is not supported yet'
             }
 
-            if (issue != '') {
-                issue += '\nUnknown'
-            }
             message.channel.send(issue)
             return
         }
