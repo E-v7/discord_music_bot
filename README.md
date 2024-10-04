@@ -8,5 +8,6 @@ This bot was created to fix the issue of music bots not working well or not havi
 
 ## To Run Locally
 - Run command "npm install" to install all required node modules
-- Set your discord bot token in the .env as "DISCORD_TOKEN={your token here}"
+- Create a file named ".env"
+- Inside the .env file add DISCORD_TOKEN="{your token here}"
 - Run command "node .\index.js" from your project directory
