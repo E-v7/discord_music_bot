@@ -39,3 +39,55 @@ export function clearCache() {
         }
     })
 }
+
+export class Logger {
+    static #log_file_path = path.join(__dirname, 'howie.log')
+    constructor() {
+        if (this instanceof Logger) {
+            throw new Error('Cannot instantiate a static class')
+        }
+    }
+
+    /**
+     * @description Writes information into the log file
+     * 
+     * @param {string} info The info you want to insert into the log file
+     * @param {object[]} items This is optional 
+     */
+    static Log(info, items = null) {
+        var date_time = new Date(Date.now()).toLocaleString('en-US', {hour12: false}).replace(',', '')
+        var items_string = ''
+
+        if (items && !Array.isArray(items)) {
+            items = [items]
+        }
+
+        if (items) {
+            items.forEach((item) => {
+                items_string += `${item} `
+            })
+        }
+
+        var final_log_message = `${date_time} ${info} ${items_string}\n`
+        fs.appendFile(this.#log_file_path, final_log_message, (err) => {
+            if (err) {
+                console.error('Could not write to the log file', err)
+            }
+        })
+    }
+
+    /**
+     * @description Logs an error to the log file with some additional information
+     * 
+     * @param {Message} message 
+     * @param {string} file The current file
+     * @param {Error} error The error caught
+     */
+    static LogError(message, file, error) {
+        Error.captureStackTrace(error, this.LogError)
+        message.channel.send('<@141633745504567296>\nAn error was caught and logged')
+        file = file.substring(file.lastIndexOf('\\') + 1)
+        var additional_info = [error, '\n', error.stack]
+        this.Log(file, additional_info)
+    }
+}

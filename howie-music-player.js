@@ -2,7 +2,7 @@ import { AudioResource, createAudioPlayer, createAudioResource, joinVoiceChannel
 import ytdl from '@distube/ytdl-core'
 import ffmpegPath from 'ffmpeg-static'
 import { Message, VoiceState } from 'discord.js'
-import { appsettings } from './helper.js'
+import { appsettings, Logger } from './helper.js'
 import { fileURLToPath } from 'url'
 import { dirname } from 'path'
 import path from 'path'
@@ -104,6 +104,7 @@ export class HowieMusicPlayer {
         if (this.#player.state.status != AudioPlayerStatus.Idle) {
             console.log(`Pushing new song on to queue ${youtube_link}`)
             this.#queue.push(youtube_link)
+            message.channel.send('Song added to queue')
             return
         }
 
@@ -113,7 +114,7 @@ export class HowieMusicPlayer {
             await this.#downloadSongToCache(youtube_link, filePath)
             this.#playSong(message.member.voice.channel, filePath, message)
         } catch (err) {
-            message.channel.send('@ev7 \nIt looks like an error was encountered while trying to play a song\n\n' + err)
+            message.channel.send('It looks like an error was encountered while trying to play a song\n\n' + err)
         }
     }
     
@@ -164,8 +165,12 @@ export class HowieMusicPlayer {
             console.log('Song finished playing, deleting from cache')
             // Delete the cached file after playing
             fs.unlink(filePath, (err) => {
-                if (err) console.error('Error deleting file:', err)
-                else console.log('Deleted cached file:', filePath)
+                if (err) {
+                    Logger.LogError(message, __filename, [err])
+                }
+                else {
+                    console.log('Deleted cached file:', filePath)
+                }
             })
 
             // Clear any existing disconnect timeout when a song starts playing
@@ -195,8 +200,12 @@ export class HowieMusicPlayer {
 
             // Clean up cached file on error
             fs.unlink(filePath, (err) => {
-                if (err) console.error('Error deleting file:', err);
-                else console.log('Deleted cached file after error:', filePath);
+                if (err) {
+                    Logger.LogError(message, __filename, [err])
+                }
+                else {
+                    console.log('Deleted cached file after player error:', filePath)
+                }
             })
         })
     }
