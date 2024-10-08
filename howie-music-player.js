@@ -7,6 +7,7 @@ import { fileURLToPath } from 'url'
 import { dirname } from 'path'
 import path from 'path'
 import fs from 'fs'
+import { QueueItem } from './queue-item.js'
 
 // Get the absolute directory path to this file
 const __filename = fileURLToPath(import.meta.url)
@@ -33,7 +34,7 @@ export class HowieMusicPlayer {
      */
     #enabled_content_streaming
     /**
-     * @type {string[]}
+     * @type {QueueItem[]}
      */
     #queue
 
@@ -103,7 +104,8 @@ export class HowieMusicPlayer {
         // If queue contains a song and the music player isn't already playing a song
         if (this.#player.state.status != AudioPlayerStatus.Idle) {
             console.log(`Pushing new song on to queue ${youtube_link}`)
-            this.#queue.push(youtube_link)
+            var new_song = new QueueItem(youtube_link)
+            this.#queue.push(new_song)
             message.channel.send('Song added to queue')
             return
         }
@@ -180,7 +182,7 @@ export class HowieMusicPlayer {
             }
 
             if (this.#queue.length > 0) {
-                var new_song_link = this.#queue.shift()
+                var new_song_link = this.#queue.shift().GetSongLink()
                 message.content = `${message.content.split(' ', 2)[0]} ${new_song_link}`
                 this.addSong(message)
             }
@@ -242,8 +244,22 @@ export class HowieMusicPlayer {
         queue_position--
         
         // Get the link for the song
-        var new_song_link = this.#queue.splice(queue_position, 1)[0]
+        var new_song_link = this.#queue.splice(queue_position, 1)[0].GetSongLink()
         this.#queue.unshift(new_song_link)
         this.#player.stop()
+    }
+
+    /**
+     * @description Formats a message and displays it into the channel the message came from
+     * 
+     * @param {Message} message The message that requested the queue to be displayed
+     */
+    DisplayCurrentQueue(message) {
+        var response_message = '**Queue**\n'
+        this.#queue.forEach((item, index) => {
+            response_message += `${index + 1}. ${item.GetSongName()}${index + 1 < this.#queue.length ? '\n' : ''}`
+        })
+
+        message.channel.send(response_message)
     }
 }
