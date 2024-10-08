@@ -24,10 +24,11 @@ const client = new Client( {
 // All bot commands and the functions they belong to
 let botCommands = {
     'h': handleHelp,    // help
-    'p': handlePlay,    // play
-    's': handleSkip,    // skip
-    'x': handleExit,    // exit
-    'prefix': handlePrefix // Change the prefix
+    'p': handlePlay,    // play a song
+    's': handleSkip,    // skip a song
+    'x': handleExit,    // exit clear queue and force bot to leave channel
+    'prefix': handlePrefix, // Change the prefix
+    'q': handleQueue    // display queue
 }
 
 // Listen to every message sent by users and handle it if needed
@@ -147,6 +148,16 @@ function handlePrefix(message) {
             message.channel.send(`Prefix has been updated to '${newPrefix}'`)
         }
     })
+}
+
+/**
+ * @description Displays the current music queue
+ * 
+ * @param {Message} message 
+ */
+function handleQueue(message) {
+    howie.DisplayCurrentQueue(message)
+    // Future ability to swap song positions in the queue
 }
 
 // welcome howie
