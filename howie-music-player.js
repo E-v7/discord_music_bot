@@ -105,6 +105,7 @@ export class HowieMusicPlayer {
         if (this.#player.state.status != AudioPlayerStatus.Idle) {
             console.log(`Pushing new song on to queue ${youtube_link}`)
             var new_song = new QueueItem(youtube_link)
+            await new_song.initialize()
             this.#queue.push(new_song)
             message.channel.send('Song added to queue')
             return
@@ -257,7 +258,7 @@ export class HowieMusicPlayer {
     DisplayCurrentQueue(message) {
         var response_message = '**Queue**\n'
         this.#queue.forEach((item, index) => {
-            response_message += `${index + 1}. ${item.GetSongName()}${index + 1 < this.#queue.length ? '\n' : ''}`
+            response_message += `${index + 1}. [${item.GetSongName()}](<${item.GetSongLink()}>) ${index + 1 < this.#queue.length ? '\n' : ''}`
         })
 
         message.channel.send(response_message)

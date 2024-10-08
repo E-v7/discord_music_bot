@@ -13,9 +13,15 @@ export class QueueItem {
      * @param {string} youtube_link 
      */
     constructor(youtube_link) {
-        var info = ytdl.getBasicInfo(youtube_link)
         this.#youtube_link = youtube_link
-        this.#song_name = info.title
+    }
+
+    /**
+     * @description Fetches information asynchronously and initializes the object
+     */
+    async initialize() {
+        const info = await ytdl.getBasicInfo(this.#youtube_link)
+        this.#song_name = info.videoDetails.title
     }
 
     GetSongName() {
